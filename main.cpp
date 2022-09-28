@@ -9,10 +9,14 @@
 #include <string>
 #include <cassert>
 #include <cstring>
+#include <ctime>
+#include <sstream>
+#include <memory>
 
 #include "main.h"
 #include "sha256.cuh"
 
+using std::chrono::system_clock;
 #define SHOW_INTERVAL_MS 2000
 #define BLOCK_SIZE 256
 #define SHA_PER_ITERATIONS 8'388'608
@@ -165,6 +169,21 @@ void print_state() {
 	}
 }
 
+std::string current_time1() {
+	system_clock::time_point tp = system_clock::now();
+ 
+	time_t raw_time = system_clock::to_time_t(tp);
+ 
+	// tm*使用完后不用delete，因为tm*是由localtime创建的，并且每个线程中会有一个
+	tm* timeinfo= nullptr;
+
+	timeinfo = std::localtime(&raw_time);
+ 
+	std::stringstream ss;
+	ss << std::put_time(timeinfo, "%Y-%m-%d %H:%M:%S,");
+	return ss.str();
+}
+
 int main() {
 
 	cudaSetDevice(0);
@@ -184,7 +203,11 @@ int main() {
 	std::cout << "Difficulty : ";
 	std::cin >> difficulty;
 	std::cout << std::endl;
-
+	
+	//添加时间戳
+	std::string start;
+	start= current_time1();
+	in = in +	start;
 
 	const size_t input_size = in.size();
 
